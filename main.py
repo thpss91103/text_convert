@@ -15,7 +15,7 @@ class TextConvertApp(tk.Tk):
 
     def build_ui(windows):
         tool_bar = tk.Frame(windows)
-        tool_bar.pack(fill="x")
+        tool_bar.grid(row=0, column=0, sticky="ew")
 
         logo_image = Image.open("logo.png").resize((80, 40))
         windows.logo_image = ImageTk.PhotoImage(logo_image)
@@ -29,13 +29,14 @@ class TextConvertApp(tk.Tk):
         ttk.Button(tool_bar, text="儲存檔案", command=windows.save_file).pack(pady=20, side="left")
 
         windows.text_frame = tk.Frame(windows)
-        windows.text_frame.pack(fill="both", expand=True, padx=10, pady=20)
+        windows.text_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=20)
         windows.text_frame.columnconfigure(0, weight=1, uniform="half")
         windows.text_frame.columnconfigure(1, weight=1, uniform="half")
         windows.text_frame.rowconfigure(1, weight=1)
 
         left_frame = tk.Frame(windows.text_frame)
         left_frame.rowconfigure(1, weight=1)
+        left_frame.columnconfigure(0, weight=1)
         left_frame.pack(fill="both", expand=True, side="left", padx=(0, 5))
 
         ttk.Label(left_frame, text="原始code").grid(row=0, column=0, sticky="w")
@@ -44,14 +45,19 @@ class TextConvertApp(tk.Tk):
 
         right_frame = tk.Frame(windows.text_frame)
         right_frame.rowconfigure(1, weight=1)
+        right_frame.columnconfigure(1, weight=1)
         right_frame.pack(fill="both", expand=True, side="left", padx=(5, 0))
 
         ttk.Label(right_frame, text="轉檔code").grid(row=0, column=1, sticky="w")
         windows.right_text_area = scrolledtext.ScrolledText(right_frame, wrap="word")
         windows.right_text_area.grid(row=1, column=1, sticky="nsew")
 
+        #視窗往下拉也會放大
+        windows.rowconfigure(1, weight=1)
+        windows.columnconfigure(0, weight=1)
+
         actionbar = tk.Frame(windows)
-        actionbar.pack(fill="x", side="bottom")
+        actionbar.grid(row=2, column=0, sticky="ew")
         ttk.Button(actionbar, text="開始轉檔", command=windows.convert_file).pack(pady=20)
 
 
