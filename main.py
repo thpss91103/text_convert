@@ -1,4 +1,7 @@
 import tkinter as tk
+from dataclasses import replace
+from idlelib.editor import keynames
+from shlex import join
 from tkinter import filedialog, scrolledtext, ttk
 from PIL import Image, ImageTk
 
@@ -26,7 +29,7 @@ class TextConvertApp(tk.Tk):
         windows.company = tk.StringVar(value="選取公司")
         windows.company_type = (ttk.Combobox(tool_bar, textvariable=windows.company, values=["瑞鼎", "集創", "敦泰"], state="readonly"))
         windows.company_type.pack(padx=10, pady=20, side="left")
-        ttk.Button(tool_bar, text="儲存檔案", command=windows.save_file).pack(pady=20, side="left")
+        ttk.Button(tool_bar, text="開始轉檔", command=windows.convert_file).pack(pady=20, side="left")
 
         windows.text_frame = tk.Frame(windows)
         windows.text_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=20)
@@ -56,10 +59,9 @@ class TextConvertApp(tk.Tk):
         windows.rowconfigure(1, weight=1)
         windows.columnconfigure(0, weight=1)
 
-        actionbar = tk.Frame(windows)
-        actionbar.grid(row=2, column=0, sticky="ew")
-        ttk.Button(actionbar, text="開始轉檔", command=windows.convert_file).pack(pady=20)
-
+        save_bar = tk.Frame(windows)
+        save_bar.grid(row=2, column=0, sticky="ew")
+        ttk.Button(save_bar, text="儲存檔案", command=windows.save_file).pack(pady=20)
 
 
     def select_file(windows):
@@ -82,7 +84,6 @@ class TextConvertApp(tk.Tk):
 
     def save_file(windows):
         content = windows.right_text_area.get("1.0", tk.END)
-        print(content)
         file_path = filedialog.asksaveasfilename(
             title="儲存 TXT 檔",
             defaultextension=".txt",
@@ -96,11 +97,66 @@ class TextConvertApp(tk.Tk):
         except OSError as error:
             print(f"無法儲存檔案：{error}")
 
+    def raydiumn_code(windows, lines):
+        for index, line in enumerate(lines):
+            if "SSD WRITE" in line:
+                raydiumn_code = "\n".join(lines[index:])
+                break
+
+        replacement = {
+            "SSD WRITE": "#SSD WRITE",
+            "/": " #",
+            "-": " 0x",
+            "]=": " 0x",
+            "]-": " 0x",
+            "]": "",
+            "[": "mipi.write 0x39 0x",
+            "MIPI_PORT_BOTH": "",
+            "IC WRITE": "#IC WRITE",
+            "ic write": "#ic write",
+            "delay": "delay 100",
+            "Delay": "delay 100",
+            "200": "",
+            "IC RESET": "",
+            "120,2,2": "",
+        }
+        result_lines = []
+
+        for line in raydiumn_code.splitlines():
+            for keyword, new_text in replacement.items():
+                before_hash, hash_mark, after_hash = line.partition("#")
+
+                # 只取代 # 前面的內容
+                before_hash = before_hash.replace(keyword, new_text)
+
+                # # 後面的內容保持原樣
+                line = before_hash + hash_mark + after_hash
+
+            result_lines.append(line)
+
+        return "\n".join(result_lines)
+
     def convert_file(windows):
         with open(windows.code_file, "r", encoding="utf-8") as file:
             code = file.read()
-        print(windows.company.get())
-        print(code)
+
+        lines = code.splitlines()
+
+        if windows.company.get() == "瑞鼎":
+            convert_code = windows.raydiumn_code(lines)
+
+        with open("mipi_setting.TXT", "r", encoding="utf-8") as file1, \
+             open("mipi_setting2.TXT", "r", encoding="utf-8") as file2:
+            file1_content = file1.read()
+            file2_content = file2.read()
+            # for line in convert_code:
+            #     file1.write(line)
+
+        final_code = f"{file1_content}\n{convert_code}\n{file2_content}"
+
+        windows.right_text_area.delete("1.0", tk.END)
+        windows.right_text_area.insert("1.0", final_code)
+
 
 # ---- 程式執行入口 ----
 if __name__ == "__main__":
