@@ -93,6 +93,23 @@ class TextConvertApp(tk.Tk):
         except OSError as error:
             print(f"無法儲存檔案：{error}")
 
+    def after_comment_noconvert(self, company_code, replacement):
+        result_lines = []
+
+        for line in company_code.splitlines():
+            for keyword, new_text in replacement.items():
+                before_hash, hash_mark, after_hash = line.partition("#")
+
+                # 只取代 # 前面的內容
+                before_hash = before_hash.replace(keyword, new_text)
+
+                # # 後面的內容保持原樣
+                line = before_hash + hash_mark + after_hash
+
+            result_lines.append(line)
+
+        return "\n".join(result_lines)
+
     def raydiumn_code(self, lines):
         raydiumn_code = ""
         for index, line in enumerate(lines):
@@ -117,21 +134,8 @@ class TextConvertApp(tk.Tk):
             "IC RESET": "",
             "120,2,2": "",
         }
-        result_lines = []
 
-        for line in raydiumn_code.splitlines():
-            for keyword, new_text in replacement.items():
-                before_hash, hash_mark, after_hash = line.partition("#")
-
-                # 只取代 # 前面的內容
-                before_hash = before_hash.replace(keyword, new_text)
-
-                # # 後面的內容保持原樣
-                line = before_hash + hash_mark + after_hash
-
-            result_lines.append(line)
-
-        return "\n".join(result_lines)
+        return self.after_comment_noconvert(raydiumn_code, replacement)
 
     def focaltech_code(self, lines):
         found_line = 0
@@ -154,21 +158,30 @@ class TextConvertApp(tk.Tk):
             "delayms_pc(": "delay ",
         }
 
-        result_lines = []
+        return self.after_comment_noconvert(focaltech_code, replacement)
 
-        for line in focaltech_code.splitlines():
-            for keyword, new_text in replacement.items():
-                before_hash, hash_mark, after_hash = line.partition("#")
+    def chipone_file(self, lines):
+        found_line = 0
+        chipone_code = ""
 
-                # 只取代 # 前面的內容
-                before_hash = before_hash.replace(keyword, new_text)
+        for index, line in enumerate(lines, 1):
+            if "Enter Video Mode" in line:
+                found_line = index
+                break
+        for index, line in enumerate(lines):
+            if "initial code start" in line:
+                chipone_code = "\n".join(lines[index+2:found_line-1])
+                break
 
-                # # 後面的內容保持原樣
-                line = before_hash + hash_mark + after_hash
+        replacement = {
+            "delay ": "delay",
+            " ": " 0x",
+            "/": " #",
+            "R": "mipi.write 0x39 0x",
+            "delay": "delay ",
+        }
 
-            result_lines.append(line)
-
-        return "\n".join(result_lines)
+        return self.after_comment_noconvert(chipone_code, replacement)
 
     def convert_file(self):
         if not self.code_file:
@@ -183,8 +196,13 @@ class TextConvertApp(tk.Tk):
             convert_code = self.raydiumn_code(lines)
         elif self.company.get() == "敦泰":
             convert_code = self.focaltech_code(lines)
+        elif self.company_type.get() == "集創":
+            convert_code = self.chipone_file(lines)
         else:
             messagebox.showwarning("提示", "請選取公司！")
+            return
+        if not convert_code:
+            messagebox.showwarning("提示", "選擇錯公司")
             return
         with open("mipi_setting.TXT", "r", encoding="utf-8") as file1, \
              open("mipi_setting2.TXT", "r", encoding="utf-8") as file2:
