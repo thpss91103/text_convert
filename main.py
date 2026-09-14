@@ -155,8 +155,8 @@ class TextConvertApp(tk.Tk):
                 found_line = index
                 break
         for index, line in enumerate(lines):
-            if "LCD initial code Start" in line:
-                focaltech_code = "\n".join(lines[index:found_line-1])
+            if "delayms_pc(1000);" in line:
+                focaltech_code = "\n".join(lines[index+1:found_line-1])
                 break
 
         replacement = {
