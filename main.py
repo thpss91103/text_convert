@@ -112,9 +112,15 @@ class TextConvertApp(tk.Tk):
 
     def raydiumn_code(self, lines):
         raydiumn_code = ""
+        found_line = 0
+
+        for index, line in enumerate(lines, 1):
+            if "delay" in line:
+                found_line = index
+
         for index, line in enumerate(lines):
             if "SSD WRITE" in line:
-                raydiumn_code = "\n".join(lines[index:])
+                raydiumn_code = "\n".join(lines[index:found_line])
                 break
 
         replacement = {
@@ -127,6 +133,7 @@ class TextConvertApp(tk.Tk):
             "[": "mipi.write 0x39 0x",
             "MIPI_PORT_BOTH": "",
             "IC WRITE": "#IC WRITE",
+            "IC Write": "#IC Write",
             "ic write": "#ic write",
             "delay": "delay 100",
             "Delay": "delay 100",
@@ -187,29 +194,35 @@ class TextConvertApp(tk.Tk):
         if not self.code_file:
             messagebox.showwarning("提示", "請載入code！")
             return
+
         with open(self.code_file, "r", encoding="utf-8") as file:
             code = file.read()
+
+        with open("mipi_setting.TXT", "r", encoding="utf-8") as file1, \
+             open("mipi_setting2.TXT", "r", encoding="utf-8") as file2:
+            file1_content = file1.read()
+            file2_content = file2.read()
 
         lines = code.splitlines()
         convert_code = ""
         if self.company.get() == "瑞鼎":
             convert_code = self.raydiumn_code(lines)
+            final_code = f"{file1_content}\n{convert_code}\n"
         elif self.company.get() == "敦泰":
             convert_code = self.focaltech_code(lines)
+            final_code = f"{file1_content}\n{convert_code}\n{file2_content}"
         elif self.company_type.get() == "集創":
             convert_code = self.chipone_file(lines)
+            final_code = f"{file1_content}\n{convert_code}\n{file2_content}"
         else:
             messagebox.showwarning("提示", "請選取公司！")
             return
         if not convert_code:
             messagebox.showwarning("提示", "選擇錯公司")
             return
-        with open("mipi_setting.TXT", "r", encoding="utf-8") as file1, \
-             open("mipi_setting2.TXT", "r", encoding="utf-8") as file2:
-            file1_content = file1.read()
-            file2_content = file2.read()
 
-        final_code = f"{file1_content}\n{convert_code}\n{file2_content}"
+
+
 
         self.right_text_area.delete("1.0", tk.END)
         self.right_text_area.insert("1.0", final_code)
