@@ -6,7 +6,7 @@ class TextConvertApp(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.title("宜特科技轉code程式")
+        self.title("宜特科技轉code程式 v1.1")
         self.iconbitmap("icon.ico")
         self.geometry("1200x720")
         self.code_file = ""
@@ -57,7 +57,10 @@ class TextConvertApp(tk.Tk):
 
         save_bar = tk.Frame(self)
         save_bar.grid(row=2, column=0, sticky="ew")
-        ttk.Button(save_bar, text="儲存檔案", command=self.save_file).pack(pady=20)
+        save_bar.columnconfigure(0, weight=1)
+        save_bar.columnconfigure(2, weight=1)
+        ttk.Button(save_bar, text="儲存檔案", command=self.save_file).grid(row=0, column=1, pady=20)
+        ttk.Label(save_bar, text="Copyright©2026 DominYang All rights reserved.", font=("Microsoft JhengHei", 7), foreground="gray").place(relx=1.0, rely=0.5, anchor="e", x=-10)
 
 
     def select_file(self):
