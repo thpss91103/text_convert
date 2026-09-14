@@ -118,11 +118,11 @@ class TextConvertApp(tk.Tk):
         found_line = 0
 
         for index, line in enumerate(lines, 1):
-            if "delay" in line:
+            if "delay" in line.lower():
                 found_line = index
 
         for index, line in enumerate(lines):
-            if "SSD WRITE" in line:
+            if "ssd write" in line.lower():
                 raydiumn_code = "\n".join(lines[index:found_line])
                 break
 
@@ -151,7 +151,7 @@ class TextConvertApp(tk.Tk):
         found_line = 0
         focaltech_code = ""
         for index, line in enumerate(lines, 1):
-            if "Video Mode Enable" in line:
+            if "video mode enable" in line.lower():
                 found_line = index
                 break
         for index, line in enumerate(lines):
@@ -175,11 +175,11 @@ class TextConvertApp(tk.Tk):
         chipone_code = ""
 
         for index, line in enumerate(lines, 1):
-            if "Enter Video Mode" in line:
+            if "enter video mode" in line.lower():
                 found_line = index
                 break
         for index, line in enumerate(lines):
-            if "initial code start" in line:
+            if "initial code start" in line.lower():
                 chipone_code = "\n".join(lines[index+2:found_line-1])
                 break
 
