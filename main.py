@@ -75,8 +75,12 @@ class TextConvertApp(tk.Tk):
             try:
                 with open(file_path, "r", encoding="utf-8") as file:
                     content = file.read()
-            except (OSError, UnicodeDecodeError) as error:
-                content = f"無法讀取檔案：{error}"
+            except UnicodeDecodeError:
+                try:
+                    with open(file_path, "r", encoding="cp950") as file:
+                        content = file.read()
+                except (OSError, UnicodeDecodeError) as error:
+                    content = f"無法讀取檔案：{error}"
 
             self.left_text_area.delete("1.0", tk.END)
             self.left_text_area.insert("1.0", content)
@@ -93,8 +97,12 @@ class TextConvertApp(tk.Tk):
         try:
             with open(file_path, "w", encoding="utf-8") as file:
                 file.write(content)
-        except OSError as error:
-            print(f"無法儲存檔案：{error}")
+        except UnicodeDecodeError:
+            try:
+                with open(file_path, "w", encoding="cp950") as file:
+                    file.write(content)
+            except OSError as error:
+                print(f"無法儲存檔案：{error}")
 
     def after_comment_noconvert(self, company_code, replacement):
         result_lines = []
@@ -198,8 +206,12 @@ class TextConvertApp(tk.Tk):
             messagebox.showwarning("提示", "請載入code！")
             return
 
-        with open(self.code_file, "r", encoding="utf-8") as file:
-            code = file.read()
+        try:
+            with open(self.code_file, "r", encoding="utf-8") as file:
+                code = file.read()
+        except UnicodeDecodeError:
+            with open(self.code_file, "r", encoding="cp950") as file:
+                code = file.read()
 
         with open("mipi_setting.TXT", "r", encoding="utf-8") as file1, \
              open("mipi_setting2.TXT", "r", encoding="utf-8") as file2:
@@ -224,12 +236,8 @@ class TextConvertApp(tk.Tk):
             messagebox.showwarning("提示", "選擇錯公司")
             return
 
-
-
-
         self.right_text_area.delete("1.0", tk.END)
         self.right_text_area.insert("1.0", final_code)
-
 
 # ---- 程式執行入口 ----
 if __name__ == "__main__":
