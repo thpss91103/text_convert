@@ -6,7 +6,7 @@ class TextConvertApp(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.title("宜特科技轉code程式 v1.1")
+        self.title("宜特科技轉code程式 v1.2")
         self.iconbitmap("icon.ico")
         self.geometry("1200x720")
         self.code_file = ""
@@ -77,7 +77,7 @@ class TextConvertApp(tk.Tk):
                     content = file.read()
             except UnicodeDecodeError:
                 try:
-                    with open(file_path, "r", encoding="cp950") as file:
+                    with open(file_path, "r", encoding="cp950", errors="ignore") as file:
                         content = file.read()
                 except (OSError, UnicodeDecodeError) as error:
                     content = f"無法讀取檔案：{error}"
@@ -99,7 +99,7 @@ class TextConvertApp(tk.Tk):
                 file.write(content)
         except UnicodeDecodeError:
             try:
-                with open(file_path, "w", encoding="cp950") as file:
+                with open(file_path, "w", encoding="cp950", errors="ignore") as file:
                     file.write(content)
             except OSError as error:
                 print(f"無法儲存檔案：{error}")
@@ -210,7 +210,7 @@ class TextConvertApp(tk.Tk):
             with open(self.code_file, "r", encoding="utf-8") as file:
                 code = file.read()
         except UnicodeDecodeError:
-            with open(self.code_file, "r", encoding="cp950") as file:
+            with open(self.code_file, "r", encoding="cp950", errors="ignore") as file:
                 code = file.read()
 
         with open("mipi_setting.TXT", "r", encoding="utf-8") as file1, \
